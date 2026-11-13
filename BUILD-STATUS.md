@@ -4,8 +4,8 @@ Implemented against Hunter-Commander/Flamescoaching at a6be044f1d397cf9d2d941a25
 
 Verified locally:
 
-- 14 domain validation/security tests passed.
-- Node syntax checks passed for browser modules, function implementation, and preview bundle.
+- 17 domain/sample tests passed.
+- Node syntax checks passed for all 17 source modules and the standalone preview bundle.
 - Static output build passed; existing tracker is retained with a coaching link.
 
 Not verified:

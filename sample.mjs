@@ -1,6 +1,7 @@
 const uid=()=>crypto.randomUUID();
 export function sampleWorkout(name='Upper body · Strength') {
   return {id:uid(),name,exercises:[['Barbell bench press',3,8,60],['Seated cable row',3,10,45],['Dumbbell shoulder press',3,10,18],['Lat pulldown',3,12,40]].map(([name,count,reps,weightKg])=>({id:uid(),name,sets:Array.from({length:count},()=>({id:uid(),reps,weightKg}))}))};
+}
 export function dateKey(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
 export function seed(){
   const now=Date.now(), workout=sampleWorkout();

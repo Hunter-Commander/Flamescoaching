@@ -13,6 +13,8 @@ node scripts/serve.mjs
 
 Open http://127.0.0.1:4173/coaching.html. The original tracker remains at `/index.html`.
 
+For a device-only preview without starting a server, generate `Flames-Coaching-Preview.html` with `node scripts/standalone.mjs` and open it in a normal browser. This self-contained sample uses IndexedDB; browsers that restrict storage for local files require the local-server option instead. Firebase mode requires the hosted/local-server app, not the standalone sample.
+
 The top-right workspace selector switches between sample coach and athlete accounts. Sample people and history are fictional. Changes persist in IndexedDB in this browser only. A sample invitation is explicitly a preview and cannot connect real accounts.
 
 Try: create a program → publish → assign to Alex Morgan → switch to Athlete → start workout → log sets → finish → switch to Coach → see history and updated progress. Messages and check-ins work across these sample views. Refresh to verify device persistence.
