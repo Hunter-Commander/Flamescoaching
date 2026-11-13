@@ -1,0 +1,7 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Attachments deliberately disabled until upload validation/scanning is deployed.
+    match /{path=**} { allow read, write: if false; }
+  }
+}
