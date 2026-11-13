@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owner(uid) { return signedIn() && request.auth.uid == uid; }
+    function participant(data) { return signedIn() && (data.coachId == request.auth.uid || data.athleteId == request.auth.uid); }
+    function shared(relationshipId, uid, scope) {
+      let r = get(/databases/$(database)/documents/relationships/$(relationshipId)).data;
+      return signedIn() && r.status == 'active' && r.coachId == request.auth.uid
+        && r.athleteId == uid && r.consent[scope] == true;
+    }
+    match /users/{uid} { allow read: if owner(uid); }
+    match /coachAccounts/{uid} { allow read: if owner(uid); }
+    match /relationships/{rid} { allow read: if participant(resource.data); }
+    match /programs/{pid} {
+      allow read: if signedIn() && resource.data.coachId == request.auth.uid;
+      match /versions/{vid} {
+        allow read: if signedIn() && get(/databases/$(database)/documents/programs/$(pid)).data.coachId == request.auth.uid;
+      }
+    }
+    match /athletes/{uid}/scheduledWorkouts/{id} {
+      allow read: if owner(uid) || shared(resource.data.relationshipId, uid, 'workouts');
+    }
+    match /athletes/{uid}/sessions/{id} {
+      allow read: if owner(uid) || shared(resource.data.relationshipId, uid, 'workouts');
+    }
+    match /athletes/{uid}/dailyStats/{id} { allow read: if owner(uid); }
+    match /athletes/{uid}/nutritionDays/{id} { allow read: if owner(uid); }
+    match /relationships/{rid}/messages/{id} {
+      allow read: if participant(get(/databases/$(database)/documents/relationships/$(rid)).data)
+        && get(/databases/$(database)/documents/relationships/$(rid)).data.status == 'active';
+    }
+    match /relationships/{rid}/checkIns/{id} {
+      allow read: if owner(get(/databases/$(database)/documents/relationships/$(rid)).data.athleteId)
+        || shared(rid, get(/databases/$(database)/documents/relationships/$(rid)).data.athleteId, 'checkIns');
+    }
+    // All mutations go through authenticated, App Check protected callable functions.
+    match /{path=**} { allow read, write: if false; }
+  }
+}
