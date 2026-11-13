@@ -1,13 +1,20 @@
-import {mkdir,copyFile,readFile,writeFile} from 'node:fs/promises';
+import {mkdir,copyFile,writeFile,rm,readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {createHash} from 'node:crypto';
+import {config as sample} from '../config.js';
+import {config as firebase} from '../config.firebase.js';
+import {resolveBuildConfig} from './build-config.mjs';
 const root=resolve(import.meta.dirname,'..');
-await mkdir(resolve(root,'dist/functions'),{recursive:true});
+// Validate before modifying the previous output. Never deploy a sample fallback.
+const {config,mode,production}=resolveBuildConfig({env:process.env,args:process.argv.slice(2),sample,firebase});
+const output=resolve(root,'dist');
+if(output!==root+'\\dist' && output!==root+'/dist')throw new Error('Unexpected build-output path.');
+await rm(output,{recursive:true,force:true});
+await mkdir(resolve(output,'functions'),{recursive:true});
 for(const file of ['index.html','coaching.html','coaching.css','app.mjs','config.js','firebase-client.mjs','persistence.mjs','sample.mjs','sw.js','manifest.webmanifest'])await copyFile(resolve(root,file),resolve(root,'dist',file));
 await copyFile(resolve(root,'functions/domain.mjs'),resolve(root,'dist/functions/domain.mjs'));
-if(process.env.FLAMES_DATA_MODE==='firebase'){
-  const {config}=await import('../config.firebase.js');
-  config.appCheckSiteKey=process.env.FLAMES_APPCHECK_SITE_KEY || config.appCheckSiteKey;
-  if(!config.appCheckSiteKey)throw new Error('Firebase builds require FLAMES_APPCHECK_SITE_KEY. The sample is not a production fallback.');
-  await writeFile(resolve(root,'dist/config.js'),`export const config = ${JSON.stringify(config,null,2)};\n`);
-}
-console.log('Built original tracker + coaching workspace in dist/.');
+await writeFile(resolve(output,'config.js'),`export const config = ${JSON.stringify(config,null,2)};\n`);
+const files={};
+for(const file of ['coaching.html','coaching.css','app.mjs','config.js','firebase-client.mjs','persistence.mjs','functions/domain.mjs'])files[file]=createHash('sha256').update(await readFile(resolve(output,file))).digest('hex');
+await writeFile(resolve(output,'release.json'),JSON.stringify({schemaVersion:1,mode,production,projectId:config.firebase?.projectId || null,appCheckConfigured:!!config.appCheckSiteKey,files},null,2));
+console.log(`Built ${mode} workspace in dist/${production?' (production)':''}.`);

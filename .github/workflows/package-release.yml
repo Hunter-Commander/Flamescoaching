@@ -1,0 +1,23 @@
+name: Package production frontend
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      FLAMES_APPCHECK_SITE_KEY: ${{ vars.FLAMES_APPCHECK_SITE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/*.test.mjs
+      - run: node scripts/build.mjs --production
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flames-coaching-production-web
+          path: dist/
+          if-no-files-found: error

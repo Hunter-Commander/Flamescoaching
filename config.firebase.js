@@ -1,5 +1,5 @@
 // Public Firebase web identifiers for the project supplied by the owner.
-// App Check site key is filled at build time using FLAMES_APPCHECK_SITE_KEY.
+// Public App Check site key supplied by the owner; build-time environment can override it.
 export const config = {
   "firebase": {
     "apiKey": "AIzaSyB9tQNTc5ELbsWAsznC5Mme0UEHuwsTBm8",
@@ -11,7 +11,7 @@ export const config = {
     "projectId": "flamescoaching-21cdf",
     "storageBucket": "flamescoaching-21cdf.firebasestorage.app"
   },
-  "appCheckSiteKey": "",
+  "appCheckSiteKey": "6Lf6gR4uAAAAACwqS84HArChW15BvKaB-iDq2kjx",
   "region": "us-central1",
   "emulators": false
 };

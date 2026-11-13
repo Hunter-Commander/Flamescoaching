@@ -2,6 +2,8 @@
 
 A coaching workspace added beside the existing Flames workout tracker, with an explicit sample mode and a Firebase backend foundation.
 
+For the reviewed production build and deployment sequence, see **DEPLOY.md**. Production builds reject sample data and missing App Check configuration. The owner-supplied public App Check key is configured. Actual deployment remains blocked on account authorization and existing-production compatibility review.
+
 ## Open locally
 
 Node.js 22 or newer is sufficient to build and run sample mode. No package installation is needed for the sample app.
