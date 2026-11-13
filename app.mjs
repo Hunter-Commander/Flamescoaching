@@ -170,7 +170,7 @@ document.addEventListener('click',async event=>{
 });
 document.addEventListener('change',async event=>{
   const t=event.target;
-  if(t.id==='role'){role=t.value;route='dashboard';data.activeSessionId=data.sessions.find(s=>s.status==='inProgress'&&s.athleteId===currentUid())?.id||null;render();return;}
+  if(t.id==='role'){role=t.value;data.workspaceRole=role;route='dashboard';data.activeSessionId=data.sessions.find(s=>s.status==='inProgress'&&s.athleteId===currentUid())?.id||null;await store();render();return;}
   if(t.dataset.sessionField){
     try{const value=Number(t.value);if(!Number.isFinite(value)||value<0||value>1000)throw new Error('Enter a value from 0 to 1000.');const s=structuredClone(data.sessions.find(s=>s.id===data.activeSessionId));s.exercises[Number(t.dataset.ex)].sets[Number(t.dataset.set)][t.dataset.sessionField]=value;await saveActive({exercises:s.exercises});}
     catch(e){toast(e.message);render();}
@@ -181,7 +181,7 @@ document.addEventListener('submit',async event=>{
   event.preventDefault();const form=event.target;if(!form.reportValidity())return;
   const p=Object.fromEntries(new FormData(form)),submit=event.submitter;if(submit)submit.disabled=true;
   try{
-    if(form.id==='invite-form'){
+    if(form.getAttribute('id')==='invite-form'){
       let result;
       if(mode==='demo')result={inviteId:uuid(),token:uuid(),expiresAt:Date.now()+7*86400000};
       else result=await mutate('createInvitation',{email:p.email});
@@ -190,13 +190,13 @@ document.addEventListener('submit',async event=>{
       const url=new URL('coaching.html',location.href);url.hash=`invite=${result.token}`;
       showModal(mode==='demo'?'Preview invitation created.':'Invitation ready.','Share this link directly with the intended athlete.',`${mode==='demo'?'<div class="notice amber">Local preview only. This link cannot connect real accounts.</div>':''}${field('Invitation link','invite-link','text',url.href,'readonly')}<div class="dialog-actions">${button('Copy link','copy-link','',true)}</div>`);render();
     }
-    if(form.id==='program-form'){collectBuilder();program(draft);const publish=event.submitter?.value==='publish';await mutate(publish?'publishProgram':'saveProgram',{...draft,expectedRevision:draft.revision});modal.close();route='programs';render();toast(publish?'Version published. Ready to assign.':'Draft saved.');}
-    if(form.id==='assign-form'){await mutate('assignProgram',p);modal.close();render();toast('Program assigned. The athlete’s schedule will update.');}
-    if(form.id==='message-form'){const r=getRelation();await mutate('sendMessage',{id:uuid(),relationshipId:r.id,text:p.message||$('#message').value},{offline:true});messageDraft='';render();}
-    if(form.id==='food-form'){const date=dateKey(),n=data.nutrition[date]||{entries:[],revision:0};await mutate('saveNutrition',{date,entries:[...n.entries,{id:uuid(),name:p.name,calories:Number(p.calories),protein:Number(p.protein),carbs:Number(p.carbs),fat:Number(p.fat)}],expectedRevision:n.revision},{offline:true});modal.close();render();toast('Food saved.');}
-    if(form.id==='checkin-form'){await mutate('submitCheckIn',{id:uuid(),relationshipId:getRelation().id,weightKg:Number(p.weightKg),energy:Number(p.energy),notes:p.notes},{offline:true});modal.close();render();toast('Check-in saved for your coach.');}
-    if(form.id==='review-form'){const c=data.checkIns.find(c=>c.id===p.id);await mutate('reviewCheckIn',{...p,relationshipId:c.relationshipId});modal.close();render();toast('Feedback saved.');}
-    if(form.id==='join-form'){if(mode==='demo')throw new Error('Real invitations require Firebase mode.');await mutate('acceptInvitation',{token:pendingInvite,consent:{workouts:true,nutrition:false,checkIns:p.checkIns==='on'}});pendingInvite=null;modal.close();toast('You’re connected. Your coach can now assign training.');}
+    if(form.getAttribute('id')==='program-form'){collectBuilder();program(draft);const publish=event.submitter?.value==='publish';await mutate(publish?'publishProgram':'saveProgram',{...draft,expectedRevision:draft.revision});modal.close();route='programs';render();toast(publish?'Version published. Ready to assign.':'Draft saved.');}
+    if(form.getAttribute('id')==='assign-form'){await mutate('assignProgram',p);modal.close();render();toast('Program assigned. The athlete’s schedule will update.');}
+    if(form.getAttribute('id')==='message-form'){const r=getRelation();await mutate('sendMessage',{id:uuid(),relationshipId:r.id,text:p.message||$('#message').value},{offline:true});messageDraft='';render();}
+    if(form.getAttribute('id')==='food-form'){const date=dateKey(),n=data.nutrition[date]||{entries:[],revision:0};await mutate('saveNutrition',{date,entries:[...n.entries,{id:uuid(),name:p.name,calories:Number(p.calories),protein:Number(p.protein),carbs:Number(p.carbs),fat:Number(p.fat)}],expectedRevision:n.revision},{offline:true});modal.close();render();toast('Food saved.');}
+    if(form.getAttribute('id')==='checkin-form'){await mutate('submitCheckIn',{id:uuid(),relationshipId:getRelation().id,weightKg:Number(p.weightKg),energy:Number(p.energy),notes:p.notes},{offline:true});modal.close();render();toast('Check-in saved for your coach.');}
+    if(form.getAttribute('id')==='review-form'){const c=data.checkIns.find(c=>c.id===p.id);await mutate('reviewCheckIn',{...p,relationshipId:c.relationshipId});modal.close();render();toast('Feedback saved.');}
+    if(form.getAttribute('id')==='join-form'){if(mode==='demo')throw new Error('Real invitations require Firebase mode.');await mutate('acceptInvitation',{token:pendingInvite,consent:{workouts:true,nutrition:false,checkIns:p.checkIns==='on'}});pendingInvite=null;modal.close();toast('You’re connected. Your coach can now assign training.');}
   }catch(e){if($('#form-error'))$('#form-error').textContent=e.message;else toast(e.message);}finally{if(submit)submit.disabled=false;}
 });
 
@@ -253,7 +253,7 @@ async function signedIn(next){
 }
 async function boot(){
   try{
-    if(mode==='demo'){data=await loadAccount('demo')||seed();await store();render();if(pendingInvite)joinModal();}
+    if(mode==='demo'){data=await loadAccount('demo')||seed();role=data.workspaceRole==='athlete'?'athlete':'coach';if(data.sessions.some(s=>s.id===data.activeSessionId&&s.athleteId===currentUid()&&s.status==='inProgress'))route='workouts';await store();render();if(pendingInvite)joinModal();}
     else{data=blank();renderLogin();const {connectFirebase}=await import('./firebase-client.mjs');api=await connectFirebase(next=>{queueMicrotask(()=>signedIn(next));});}
     if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }catch(e){$('#app').innerHTML=`<main class="blank-onboarding"><h1>Couldn’t open the workspace.</h1><p class="error" style="margin-top:20px">${esc(e.message)}</p><p class="subtext">Check device storage permissions and Firebase configuration, then reload.</p><a class="btn" href="coaching.html">Reload workspace</a></main>`;}

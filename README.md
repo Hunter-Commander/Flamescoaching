@@ -35,6 +35,10 @@ Try: create a program → publish → assign to Alex Morgan → switch to Athlet
 
 The current GitHub source contains no Firebase project configuration, so `config.js` intentionally starts with `firebase: null`. Do not treat sample data as cloud-synchronized data.
 
+The owner subsequently supplied `flamescoaching-21cdf`. Its public Firebase Hosting initialization configuration is saved in `config.firebase.js`, and `.firebaserc` defines an explicit `production` alias without a default deploy target. To build for that project, set `FLAMES_DATA_MODE=firebase` and `FLAMES_APPCHECK_SITE_KEY` before running the build. The build requires the App Check key and never silently falls back to sample mode. Sign in using `scripts/firebase-signin.ps1` on Windows if no Firebase CLI account is authorized. Review existing production security rules and data before deploying replacement rules.
+
+All six rules-emulator tests and all five callable integration scenarios now pass locally. Run `pnpm test:rules` and `pnpm test:integration` with Java 21 available to repeat them. `pnpm install --frozen-lockfile` installs both root and Functions dependencies using the checked-in workspace and lockfile.
+
 1. Select the intended Firebase staging project. Register a web app, enable Google Authentication and Firestore. Choose a Firestore location near users before creating the database.
 2. Copy public web configuration from Firebase console into `config.js`, using `config.example.js` as the shape. These are web identifiers, not administrator credentials. Never put service-account keys in client files.
 3. Add localhost and the intended deployed domains to Authentication authorized domains. Register those domains with App Check using reCAPTCHA Enterprise; set `appCheckSiteKey`.
