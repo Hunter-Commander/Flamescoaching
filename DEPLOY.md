@@ -63,11 +63,10 @@ The repository’s `vercel.json` selects Node via `package.json`, installs the l
 Local production build (PowerShell):
 
 ```powershell
-$env:FLAMES_APPCHECK_SITE_KEY = 'YOUR_REGISTERED_PUBLIC_SITE_KEY'
 node scripts/build.mjs --production
 ```
 
-A successful build writes `dist/release.json` with mode, target project and asset SHA-256 hashes. A rejected configuration leaves the previous output untouched. The production packaging GitHub workflow can build a downloadable frontend artifact after `FLAMES_APPCHECK_SITE_KEY` is set as a variable in the repository’s `production` environment. It does not deploy or grant credentials.
+A successful build uses the already configured owner-supplied public key and writes `dist/release.json` with mode, target project and asset SHA-256 hashes. Set `FLAMES_APPCHECK_SITE_KEY` only to override that key. A rejected configuration leaves the previous output untouched. The production packaging GitHub workflow builds a downloadable frontend artifact; a variable in the repository’s `production` environment can override the key. It does not deploy or grant credentials.
 
 Verify the existing Vercel project’s connected repository and production branch before merging PR #1. The repository fetched for this work contains an older tracker than the currently visible onboarding, so this link must be checked. Then deploy the reviewed source through that project’s normal Vercel release flow.
 
@@ -86,3 +85,4 @@ Use two test accounts before admitting athletes:
 Keep the previous Vercel deployment and the exported Firestore rules for rollback. Restore a previously verified backend/rules version if a backend change is incompatible; a frontend rollback does not automatically roll back Firebase.
 
 Platform references: [Vercel configuration](https://vercel.com/docs/project-configuration/vercel-json), [Vercel environment variables](https://vercel.com/docs/environment-variables/system-environment-variables), [Firebase App Check setup](https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider).
+
