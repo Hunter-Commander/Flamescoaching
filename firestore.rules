@@ -9,7 +9,15 @@ service cloud.firestore {
       return signedIn() && r.status == 'active' && r.coachId == request.auth.uid
         && r.athleteId == uid && r.consent[scope] == true;
     }
-    match /users/{uid} { allow read: if owner(uid); }
+    // Preserve the deployed legacy tracker contract exactly; coaching uses a separate profile.
+    match /users/{uid} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.user.firebaseUid == uid
+        && request.resource.data.schemaVersion == 2;
+      allow delete: if owner(uid);
+    }
+    match /coachingUsers/{uid} { allow read: if owner(uid); }
     match /coachAccounts/{uid} { allow read: if owner(uid); }
     match /relationships/{rid} { allow read: if participant(resource.data); }
     match /programs/{pid} {

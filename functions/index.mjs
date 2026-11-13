@@ -17,8 +17,8 @@ export const coaching=onCall(options, async request=>{
     const {action,requestId,data={}}=request.data || {};
     id(requestId); text(action,50);
     check(JSON.stringify(data).length<250000,'Request too large.');
-    const ledger=db.doc(`users/${uid}/operations/${requestId}`);
-    const bucket=db.doc(`users/${uid}/rateLimits/${Math.floor(Date.now()/60000)}`);
+    const ledger=db.doc(`coachingUsers/${uid}/operations/${requestId}`);
+    const bucket=db.doc(`coachingUsers/${uid}/rateLimits/${Math.floor(Date.now()/60000)}`);
     const token=action==='createInvitation'?randomBytes(32).toString('base64url'):null;
     let fresh=false;
     const result=await db.runTransaction(async tx=>{
@@ -45,17 +45,17 @@ export const coaching=onCall(options, async request=>{
       };
       let out={ok:true};
       if(action==='onboard') {
-        const previous=await get(`users/${uid}`);
+        const previous=await get(`coachingUsers/${uid}`);
         const timezone=text(data.timezone || 'UTC',100);
         try {new Intl.DateTimeFormat('en',{timeZone:timezone});}catch{check(false,'Invalid timezone.');}
-        put(`users/${uid}`,{...previous,displayName:text(data.displayName,80),timezone,updatedAt:Date.now(),schemaVersion:1});
+        put(`coachingUsers/${uid}`,{...previous,displayName:text(data.displayName,80),timezone,updatedAt:Date.now(),schemaVersion:1});
         if(data.coach===true) {
           check(request.auth.token.coach===true || request.auth.token.admin===true || process.env.FUNCTIONS_EMULATOR==='true','Coach activation requires administrator approval.','permission-denied');
           put(`coachAccounts/${uid}`,{status:'active',updatedAt:Date.now(),schemaVersion:1});
         }
       } else if(action==='createInvitation') {
         await activeCoach();
-        const coach=await get(`users/${uid}`);
+        const coach=await get(`coachingUsers/${uid}`);
         const inviteId=hash(token);
         put(`invitations/${inviteId}`,{coachId:uid,coachName:coach?.displayName || 'Your coach',email:email(data.email),status:'pending',expiresAt:Date.now()+7*86400000,createdAt:Date.now(),schemaVersion:1});
         out={inviteId,expiresAt:Date.now()+7*86400000}; fresh=true;
@@ -73,7 +73,7 @@ export const coaching=onCall(options, async request=>{
         if(inv.status==='accepted') out={relationshipId:rid};
         else {
           const coachAccount=await get(`coachAccounts/${inv.coachId}`);
-          const profile=await get(`users/${uid}`);
+          const profile=await get(`coachingUsers/${uid}`);
           check(coachAccount?.status==='active','Coach account is unavailable.','failed-precondition');
           check(!pointer?.relationshipId,'End your current coaching connection first.','failed-precondition');
           check(data.consent?.workouts===true,'Workout sharing is required for coaching.');

@@ -11,7 +11,7 @@ export const config = {
     "projectId": "flamescoaching-21cdf",
     "storageBucket": "flamescoaching-21cdf.firebasestorage.app"
   },
-  "appCheckSiteKey": "6Lf6gR4uAAAAACwqS84HArChW15BvKaB-iDq2kjx",
+  "appCheckSiteKey": "6Lc3sx4uAAAAACQmi83XLjExEuWEyCWr4QwMlxD3",
   "region": "us-central1",
   "emulators": false
 };

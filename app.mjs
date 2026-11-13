@@ -237,7 +237,7 @@ async function signedIn(next){
   account=`firebase:${config.firebase.projectId}:${next.uid}`;
   data=await loadAccount(account)||blank();if(generation!==authGeneration)return;
   role=data.coachAccount?.status==='active'?'coach':'athlete';render();
-  const profilePath=`users/${next.uid}`;
+  const profilePath=`coachingUsers/${next.uid}`;
   api.doc(profilePath,profile=>{data.profile=profile;void store();render();},watchError);
   api.doc(`coachAccounts/${next.uid}`,c=>{data.coachAccount=c;if(!c&&role==='coach')role='athlete';render();},watchError);
   for(const field of ['coachId','athleteId'])api.list('relationships',[[field,'==',next.uid]],records=>{

@@ -1,18 +1,17 @@
 # Deploy Flames Coaching
 
-Target Firebase project: **flamescoaching-21cdf**. Target Vercel application: **flamescoaching**. The coaching app is available at `/coaching`; the existing tracker remains at `/`.
+Target Firebase project: **flamescoaching-21cdf**. Target Vercel application: **flamescoach**. Production opens the coaching app at `/` and `/coaching`; the preserved standalone tracker is at `/tracker`.
 
 ## Current release status
 
 Source, locked dependencies, Firebase emulator tests, browser sample workflows and static packaging have been verified. Production activation is pending:
 
-- An authorized Firebase CLI account.
-- Vercel access to the owner’s team.
-- Inspection of existing production rules/data and confirmation of the Git repository attached to the current live app.
+- The owner must enable the Firebase Blaze plan; billing is currently disabled.
+- Deploy the Cloud Function after billing is enabled, then run the final live coach/athlete workflow checks.
 
-No production rules or existing Vercel application have been changed. The separate private preview is a sample workspace.
+The new Vercel frontend is live at https://flamescoach.vercel.app. Its Google sign-in domain is authorized. Production Firestore rules and coaching indexes have been deployed; the existing app’s `/users/{uid}` schema-2 rules remain intact and new profiles use `/coachingUsers/{uid}`. The old Vercel app at flamescoaching.vercel.app is unchanged. Cloud Functions deployment is blocked while Firebase billing is disabled.
 
-The owner supplied the public Enterprise site key, now recorded in `config.firebase.js`. Production builds use it unless `FLAMES_APPCHECK_SITE_KEY` overrides it. Confirm its Firebase App Check registration and allowed production domains during release verification.
+Inspection found that the initially supplied key was not owned by this project. A project-owned score-based Enterprise key is now registered with Firebase App Check and restricted to flamescoach.vercel.app and flamescoaching.vercel.app. The correct public key is in `config.firebase.js`.
 
 ## 1. Configure the existing project
 
@@ -44,7 +43,7 @@ The Functions directory also contains a standalone npm lockfile so Firebase’s 
 
 ## 3. Deploy the Firebase backend first
 
-Sign in with an account authorized for the target project (`scripts/firebase-signin.ps1` on Windows). Before replacing rules, export the current Firestore rules from Firebase Console and compare them against `firestore.rules`, including the collections used by the current live app. Preserve any required legacy access through an audited migration rather than blindly replacing the rules. Confirm that billing and required APIs are available for second-generation Cloud Functions.
+Firebase CLI sign-in is complete. The previously deployed Firestore rules were inspected and backed up before deployment; their legacy `/users/{uid}` access conditions are preserved. Coaching uses `/coachingUsers/{uid}` to avoid clobbering the old schema. The merged rules and indexes are already deployed. Billing must be enabled before second-generation Functions can deploy.
 
 After that compatibility review, deploy only the coaching backend and Firestore configuration:
 
@@ -85,4 +84,3 @@ Use two test accounts before admitting athletes:
 Keep the previous Vercel deployment and the exported Firestore rules for rollback. Restore a previously verified backend/rules version if a backend change is incompatible; a frontend rollback does not automatically roll back Firebase.
 
 Platform references: [Vercel configuration](https://vercel.com/docs/project-configuration/vercel-json), [Vercel environment variables](https://vercel.com/docs/environment-variables/system-environment-variables), [Firebase App Check setup](https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider).
-
